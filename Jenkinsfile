@@ -1,13 +1,12 @@
 pipeline {
-    agent {
-        docker{
-            image 'node:18-alpine'
-            reuseNode true
-        }
-    }
-
     stages {
-        stage('Hello') {
+        stage('Build') {
+            agent {
+                docker{
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 sh'''
                     ls -la
@@ -16,6 +15,21 @@ pipeline {
                     npm ci
                     npm run build
                     ls -la
+                '''
+            }
+        }
+        stage('Test'){
+            agent {
+                docker{
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            stage{
+                sh'''
+                    echo "Test stage"
+                    test -f build/index.html
+                    npm test
                 '''
             }
         }
