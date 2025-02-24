@@ -47,15 +47,17 @@ pipeline {
             steps{
                 sh'''
                     npm install serve
-                    node_modules/.bin/serve -s build
+                    node_modules/.bin/serve -s build &
+                    sleep 10
                     npx playwright test
                 '''
+                // use & at the end to run the next command without wait the end of a step
             }
         }
     }
     post{
         always{
-            junit 'test-results/junit.xml'
+            junit 'jest-results/junit.xml'
         }
     }
 }
