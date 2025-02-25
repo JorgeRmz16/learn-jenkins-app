@@ -3,15 +3,16 @@ pipeline {
 
     stages {
         /*
+
         stage('Build') {
             agent {
-                docker{
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
             steps {
-                sh'''
+                sh '''
                     ls -la
                     node --version
                     npm --version
@@ -22,48 +23,54 @@ pipeline {
             }
         }
         */
-        stage('Test'){
-            parallel{
-                stage('Unit test'){
+
+        stage('Tests') {
+            parallel {
+                stage('Unit tests') {
                     agent {
-                        docker{
+                        docker {
                             image 'node:18-alpine'
                             reuseNode true
                         }
                     }
-                    steps{
-                        sh'''
-                            echo "Test stage"
-                            test -f build/index.html
+
+                    steps {
+                        sh '''
+                            #test -f build/index.html
                             npm test
                         '''
                     }
-                }
-                stage('E2E'){
-                    agent {
-                        docker{
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                            reuseNode true
-                            // run as administrator user (not recomend to use)
-                            // args '-u root:root' 
+                    post {
+                        always {
+                            junit 'jest-results/junit.xml'
                         }
                     }
-                    steps{
-                        sh'''
+                }
+
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            reuseNode true
+                        }
+                    }
+
+                    steps {
+                        sh '''
                             npm install serve
                             node_modules/.bin/serve -s build &
                             sleep 10
-                            npx playwright test
+                            npx playwright test  --reporter=html
                         '''
-                        // use & at the end to run the next command without wait the end of a step
+                    }
+
+                    post {
+                        always {
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                        }
                     }
                 }
             }
-        }
-    }
-    post{
-        always{
-            junit 'jest-results/junit.xml'
         }
     }
 }
