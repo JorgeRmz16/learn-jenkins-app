@@ -37,7 +37,7 @@ pipeline {
                 '''
             }
         }
-/*
+
         stage('E2E') {
             agent {
                 docker {
@@ -45,17 +45,15 @@ pipeline {
                     reuseNode true
                 }
             }
-
             steps {
                 sh '''
                     npm install serve
-                    node_modules/.bin/serve -s build -l 3000 &
+                    node_modules/.bin/serve -s build &
                     sleep 10
                     npx playwright test
                 '''
             }
         }
-        */
     }
 
     post {
